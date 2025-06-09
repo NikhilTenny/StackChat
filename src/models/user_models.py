@@ -21,6 +21,7 @@ class User(Base):
         nullable=False,
         server_default=func.now()
     )
+    profile: Mapped[profile] = relationship("Profile", back_populates="user", uselist=False)
 
 class Token(Base):
     __tablename__ = "token"
@@ -37,6 +38,24 @@ class Token(Base):
         nullable=False,
         server_default=func.now()
     )
+
+class Profile(Base):
+    __tablename__ = "profile"
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), 
+        ForeignKey("user.id"), 
+        primary_key=True
+    )
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    bio: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        server_default=func.now()
+    )
+    user: Mapped[User] = relationship("User", back_populates="profile", uselist=False)
+    
+    
 
 
 
