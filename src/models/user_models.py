@@ -4,6 +4,8 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 import uuid
+from typing import List, Optional
+from src.models.chat_models import Participant
 
 class User(Base):
     __tablename__ = "user"
@@ -22,6 +24,8 @@ class User(Base):
         server_default=func.now()
     )
     profile: Mapped[profile] = relationship("Profile", back_populates="user", uselist=False)
+    chat_participants: Mapped[List['Participant']] = relationship("Participant", back_populates="user")
+    created_conversations: Mapped[List['Conversation']] = relationship("Conversation", back_populates="creator")
 
 class Token(Base):
     __tablename__ = "token"
@@ -39,6 +43,8 @@ class Token(Base):
         server_default=func.now()
     )
 
+    
+
 class Profile(Base):
     __tablename__ = "profile"
     user_id: Mapped[uuid.UUID] = mapped_column(
@@ -47,7 +53,7 @@ class Profile(Base):
         primary_key=True
     )
     name: Mapped[str] = mapped_column(String(50), nullable=False)
-    bio: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    bio: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         nullable=False,

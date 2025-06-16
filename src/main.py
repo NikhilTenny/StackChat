@@ -9,10 +9,11 @@ from src.config import settings
 from fastapi import APIRouter
 from src.routers import auth_routes
 from src.routers import user_routes
+from src.routers import chat_routes
 load_dotenv()
 
 # Create database tables
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 # FastAPI app instance
 app = FastAPI(
@@ -38,6 +39,7 @@ api_router = APIRouter()
 
 api_router.include_router(auth_routes.router)
 api_router.include_router(user_routes.router)
+api_router.include_router(chat_routes.router)
 
 app.include_router(api_router)
 
