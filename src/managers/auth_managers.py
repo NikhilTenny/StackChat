@@ -16,6 +16,14 @@ def get_user(session: Session, email: str) -> User | None:
         print("Error fetching user:", e)
         return None
 
+def get_user_by_id(session: Session, id: uuid.UUID) -> User | None:
+    try:
+        statement = select(User).where(User.id == id)
+        return session.execute(statement).scalar_one_or_none()
+    except Exception as e:
+        print("Error fetching user:", e)
+        return None
+
 def create_user(session: Session, user_in: UserSignup):
     """
         Create a new user and profile in the database

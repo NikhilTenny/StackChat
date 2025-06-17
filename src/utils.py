@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Union, Any
 from jose import jwt
 from src.config import settings
-
+import uuid
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -37,5 +37,11 @@ def create_refresh_token(subject: Union[str, Any], expires_delta: int = None) ->
     to_encode = {"exp": expires_delta, "sub": str(subject)}
     encoded_jwt = jwt.encode(to_encode, settings.JWT_REFRESH_SECRET_KEY, settings.JWT_ALGORITHM)
     return encoded_jwt
+
+
+def _get_authenticated_user_id(dependency: str) -> uuid.UUID:
+    """Extract and return user ID from JWT token."""
+    payload = jwt.decode(dependency, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+    return payload['sub']
 
 
