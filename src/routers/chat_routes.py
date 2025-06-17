@@ -15,6 +15,9 @@ from src.managers.auth_managers import get_user_by_id
 from src.schemas.chat_schema import CreateConversation  
 router = APIRouter(prefix="/chat", tags=["chat"])
 from src.utils import _get_authenticated_user_id
+from src.schemas.common_schema import StandardResponse
+from src.schemas.chat_schema import ConversationResponse
+from src.schemas.user_schema import UserResponse
 
 
 from sqlalchemy import select
@@ -34,7 +37,7 @@ def get_conversations(session: SessionDep, dependency=Depends(jwt_bearer)):
     )
     conversation = session.scalar(stmt)
     # return the conversations
-    return {"data": conversation}
+    return StandardResponse(success=True, data=[ConversationResponse.from_orm(conversation)])
 
 
 
@@ -67,13 +70,12 @@ def create_conversation(session: SessionDep, receiver: CreateConversation, depen
     try:
         conversation = chat_manager.create_conversation(session=session, creator_id=user_id, receiver_ids=[receiver_id])
         if conversation:
-            return {"data": conversation}
+            return StandardResponse(success=True, data=ConversationResponse.from_orm(conversation))
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create conversation"
         )
     except Exception as e:
-        print('Ehere occured error: ', e)
         session.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -91,11 +93,12 @@ def get_conversation_by_id(session: SessionDep, conversation_id: uuid.UUID, depe
         select(Conversation)
             .join(Participant)
             .where(Participant.user_id == user_id)
+            .where(Conversation.id == conversation_id)
     )
     conversation = session.scalar(stmt)
 
     # return the conversations
-    return {"data": conversation}
+    return StandardResponse(success=True, data=ConversationResponse.from_orm(conversation))
 
 # @router.post("/send")
 # def send_message(session: SessionDep, message_in: MessageIn, dependency=Depends(jwt_bearer)):
@@ -108,5 +111,5 @@ def search_user(session: SessionDep, search_query: str, dependency=Depends(jwt_b
     stmt = select(User).where(User.name.contains(search_query) | User.email.contains(search_query))
     users = session.scalars(stmt).all()
     
-    # return the users
-    return {"data": users}
+    response_data = [UserResponse.from_orm(user) for user in users]
+    return StandardResponse(success=True, data=response_data)

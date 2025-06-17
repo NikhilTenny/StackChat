@@ -9,6 +9,7 @@ from src.config import settings
 import jwt
 from datetime import datetime, timezone
 from src.models.user_models import Token
+from src.schemas.common_schema import StandardResponse, ResponseBase
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -30,7 +31,7 @@ def signup(user_in: UserSignup, session: SessionDep):
         raise HTTPException(status_code=500, detail="User creation failed")
     
     # return a 201 saying user created
-    return {"message": "User created successfully"}
+    return StandardResponse(success=True, message="User created successfully")
 
 
 
@@ -47,10 +48,14 @@ def login(user_in: UserSignup, session: SessionDep):
     refresh_token = create_refresh_token(user.id)
     create_token(session=session, user_id=user.id, access_token=access_token, refresh_token=refresh_token)
 
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-    }
+    return StandardResponse(
+        success=True,
+        message="Login successful",
+        data={
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+        }
+    )
 
 @router.post('/logout')
 def logout(session: SessionDep, dependency=Depends(jwt_bearer)):
@@ -74,5 +79,5 @@ def logout(session: SessionDep, dependency=Depends(jwt_bearer)):
         session.refresh(existing_token)
 
 
-    return {"message": "Logout successful"}
+    return StandardResponse(success=True, message="Logout successful")
     

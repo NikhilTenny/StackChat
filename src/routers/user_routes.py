@@ -6,7 +6,8 @@ from src.models.user_models import Token
 from src.auth_bearer import jwt_bearer
 import jwt
 from src.managers.user_manager import get_profile_data, update_profile_data
-from src.schemas.user_schema import UserProfileInBase, UserProfileIn
+from src.schemas.user_schema import UserProfileInBase, UserProfileIn, ProfileResponse
+from src.schemas.common_schema import StandardResponse
 
 router = APIRouter(prefix="/user", tags=["user"])
 
@@ -19,7 +20,7 @@ def get_profile(session: SessionDep, dependency=Depends(jwt_bearer)):
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
     
-    return {"data": profile}
+    return StandardResponse(success=True, data=ProfileResponse.from_orm(profile))
 
 
 
@@ -29,4 +30,4 @@ def update_profile(session: SessionDep, profile_in: UserProfileInBase, dependenc
     user_id = payload['sub']
     profile_in = UserProfileIn(user_id=user_id, name=profile_in.name, bio=profile_in.bio)
     profile = update_profile_data(session=session, profile_in=profile_in)
-    return {"data": profile}
+    return StandardResponse(success=True, data=ProfileResponse.from_orm(profile))
